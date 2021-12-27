@@ -1,0 +1,97 @@
+service: darts-tracker-database
+
+custom:
+  stage: ${opt:stage, self:provider.stage}
+  playersTableName: ${self:custom.stage}-dt-players
+  leaguesTableName: ${self:custom.stage}-dt-leagues
+  gamesTableName: ${self:custom.stage}-dt-games
+
+provider:
+  name: aws
+  stage: dev
+  region: us-east-1
+
+resources:
+  Resources:
+    PlayersTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:custom.playersTableName}
+        AttributeDefinitions:
+          - AttributeName: email
+            AttributeType: S
+        KeySchema:
+          - AttributeName: email
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+    LeaguesTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:custom.leaguesTableName}
+        AttributeDefinitions:
+          - AttributeName: leagueKey
+            AttributeType: S
+        KeySchema:
+          - AttributeName: leagueKey
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+    LeagueMembershipTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:custom.leagueMembershipTableName}
+        AttributeDefinitions:
+          - AttributeName: leagueKey
+            AttributeType: S
+          - AttributeName: email
+            AttributeType: S
+        KeySchema:
+          - AttributeName: leagueKey
+            KeyType: HASH
+          - AttributeName: email
+            KeyType: RANGE
+        BillingMode: PAY_PER_REQUEST
+    GamesTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:custom.gamesTableName}
+        AttributeDefinitions:
+          - AttributeName: leagueKey
+            AttributeType: S
+          - AttributeName: gameId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: leagueKey
+            KeyType: HASH
+          - AttributeName: gameId
+            KeyType: RANGE
+        BillingMode: PAY_PER_REQUEST
+
+  Outputs:
+    PlayersTableArn:
+      Value:
+         Fn::GetAtt:
+          - PlayersTable
+          - Arn
+      Export:
+        Name: ${self:custom.stage}-dt-PlayersTableArn
+    LeaguesTableArn:
+      Value:
+         Fn::GetAtt:
+          - LeaguesTable
+          - Arn
+      Export:
+        Name: ${self:custom.stage}-dt-LeaguesTableArn
+    LeagueMembershipTableArn:
+      Value:
+         Fn::GetAtt:
+          - LeagueMembershipTable
+          - Arn
+      Export:
+        Name: ${self:custom.stage}-dt-LeagueMembershipTableArn
+    GamesTableArn:
+      Value:
+         Fn::GetAtt:
+          - GamesTable
+          - Arn
+      Export:
+        Name: ${self:custom.stage}-dt-GamesTableArn
