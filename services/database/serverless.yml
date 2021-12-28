@@ -2,8 +2,8 @@ service: darts-tracker-database
 
 custom:
   stage: ${opt:stage, self:provider.stage}
-  playersTableName: ${self:custom.stage}-dt-players
   leaguesTableName: ${self:custom.stage}-dt-leagues
+  leagueMembershipTableName: ${self:custom.stage}-dt-leaguemembership
   gamesTableName: ${self:custom.stage}-dt-games
 
 provider:
@@ -13,17 +13,6 @@ provider:
 
 resources:
   Resources:
-    PlayersTable:
-      Type: AWS::DynamoDB::Table
-      Properties:
-        TableName: ${self:custom.playersTableName}
-        AttributeDefinitions:
-          - AttributeName: email
-            AttributeType: S
-        KeySchema:
-          - AttributeName: email
-            KeyType: HASH
-        BillingMode: PAY_PER_REQUEST
     LeaguesTable:
       Type: AWS::DynamoDB::Table
       Properties:
@@ -49,6 +38,11 @@ resources:
             KeyType: HASH
           - AttributeName: email
             KeyType: RANGE
+        GlobalSecondaryIndexes:
+          - IndexName: emailIndex
+            KeySchema:
+            - AttributeName: email
+              KeyType: HASH
         BillingMode: PAY_PER_REQUEST
     GamesTable:
       Type: AWS::DynamoDB::Table
@@ -67,13 +61,6 @@ resources:
         BillingMode: PAY_PER_REQUEST
 
   Outputs:
-    PlayersTableArn:
-      Value:
-         Fn::GetAtt:
-          - PlayersTable
-          - Arn
-      Export:
-        Name: ${self:custom.stage}-dt-PlayersTableArn
     LeaguesTableArn:
       Value:
          Fn::GetAtt:
